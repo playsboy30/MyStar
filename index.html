@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bebo × Mariam — Still Us</title>
+<meta name="description" content="A quiet, cinematic record of two people who found their way back to each other.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   TOKENS
+   ========================================================= */
+:root {
+  --midnight:   #0b0810;
+  --plum:       #1c1224;
+  --plum-soft:  #2a1c34;
+  --lavender:   #b6a4d6;
+  --lavender-dim: #7c6d94;
+  --rose:       #d98fa6;
+  --rose-bright:#f0b6c6;
+  --cream:      #f3ece2;
+
+  --grad-atmosphere: radial-gradient(circle at 20% 20%, rgba(217,143,166,0.10), transparent 45%),
+                      radial-gradient(circle at 80% 0%, rgba(182,164,214,0.14), transparent 50%),
+                      radial-gradient(circle at 50% 100%, rgba(42,28,52,0.9), var(--midnight) 70%);
+
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'Manrope', sans-serif;
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 2rem;
+  --space-4: 4rem;
+  --space-5: 8rem;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-slow: 1.4s;
+  --dur-med: 0.7s;
+}
+
+body.atmosphere--warm {
+  --grad-atmosphere: radial-gradient(circle at 20% 20%, rgba(240,182,198,0.16), transparent 45%),
+                      radial-gradient(circle at 80% 0%, rgba(217,143,166,0.18), transparent 50%),
+                      radial-gradient(circle at 50% 100%, rgba(58,30,44,0.92), #120a10 70%);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--midnight);
+  background-image: var(--grad-atmosphere);
+  background-attachment: fixed;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.6;
+  overflow-x: hidden;
+  transition: background-image 1.8s var(--ease);
+}
+
+::selection { background: var(--rose); color: var(--midnight); }
+a { color: inherit; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+}
+
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 1.5px solid var(--rose-bright);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+img { max-width: 100%; display: block; }
+
+/* =========================================================
+   AMBIENT LAYERS
+   ========================================================= */
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 8s steps(8) infinite;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate(0,0); }
+  25%  { transform: translate(-2%,1%); }
+  50%  { transform: translate(1%,-2%); }
+  75%  { transform: translate(-1%,-1%); }
+  100% { transform: translate(0,0); }
+}
+
+.cursor-glow {
+  position: fixed;
+  top: 0; left: 0;
+  width: 420px;
+  height: 420px;
+  margin: -210px 0 0 -210px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217,143,166,0.10), transparent 70%);
+  z-index: 2;
+  pointer-events: none;
+  transform: translate(-9999px, -9999px);
+  transition: transform 0.15s ease-out;
+}
+
+/* =========================================================
+   THE THREAD — signature element
+   ========================================================= */
+.thread {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.thread line {
+  stroke: var(--lavender-dim);
+  stroke-width: 1;
+  opacity: 0.35;
+  transition: stroke 1.6s var(--ease), opacity 1.6s var(--ease);
+  vector-effect: non-scaling-stroke;
+}
+
+/* =========================================================
+   ATMOSPHERE TOGGLE (easter egg)
+   ========================================================= */
+.atmosphere-toggle {
+  position: fixed;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: 20;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.atmosphere-toggle__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lavender);
+  box-shadow: 0 0 12px 2px rgba(182,164,214,0.5);
+  transition: background 0.6s ease, box-shadow 0.6s ease, transform 0.3s ease;
+}
+
+.atmosphere-toggle:hover .atmosphere-toggle__dot { transform: scale(1.3); }
+
+body.atmosphere--warm .atmosphere-toggle__dot {
+  background: var(--rose-bright);
+  box-shadow: 0 0 14px 3px rgba(240,182,198,0.6);
+}
+
+/* =========================================================
+   LAYOUT PRIMITIVES
+   ========================================================= */
+main { position: relative; z-index: 3; }
+
+section {
+  position: relative;
+  padding: var(--space-5) var(--space-3);
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
+}
+
+[data-reveal].is-visible { opacity: 1; transform: translateY(0); }
+
+/* =========================================================
+   HERO
+   ========================================================= */
+.hero {
+  min-height: 100vh;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-3);
+}
+
+.hero__names {
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.42em;
+  font-size: clamp(0.75rem, 1.6vw, 0.95rem);
+  color: var(--lavender);
+  margin: 0 0 var(--space-2);
+  transition-delay: 0.1s;
+}
+
+.hero__times { color: var(--rose); font-weight: 300; }
+
+.hero__rule {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(to bottom, transparent, var(--lavender-dim), transparent);
+  margin: 0 auto var(--space-3);
+  transition-delay: 0.3s;
+}
+
+.hero__line {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(2.2rem, 7vw, 4.4rem);
+  line-height: 1.25;
+  margin: 0;
+  color: var(--cream);
+  transition-delay: 0.5s;
+}
+
+.hero__line span { display: block; }
+.hero__line span:last-child { color: var(--rose-bright); font-style: normal; }
+
+.scroll-cue {
+  position: absolute;
+  bottom: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  transition-delay: 1s;
+}
+
+.scroll-cue span {
+  width: 1px;
+  height: 32px;
+  background: linear-gradient(to bottom, var(--lavender), transparent);
+  animation: scroll-pulse 2.4s var(--ease) infinite;
+}
+
+.scroll-cue p {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--lavender-dim);
+  margin: 0;
+}
+
+@keyframes scroll-pulse {
+  0%, 100% { opacity: 0.2; transform: scaleY(0.6); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+/* =========================================================
+   CHAPTERS
+   ========================================================= */
+.chapter {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chapter__marker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.chapter__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rose-bright);
+  box-shadow: 0 0 16px 4px rgba(240,182,198,0.55);
+  flex-shrink: 0;
+}
+
+.chapter__dot--dim {
+  background: var(--lavender-dim);
+  box-shadow: 0 0 8px 2px rgba(124,109,148,0.3);
+}
+
+.chapter__date {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--lavender);
+}
+
+.chapter__body { max-width: 640px; }
+
+.chapter__eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rose);
+  margin: 0 0 var(--space-1);
+}
+
+.chapter__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  margin: 0 0 var(--space-2);
+  color: var(--cream);
+}
+
+.chapter__title--quiet { color: var(--lavender); font-style: italic; }
+
+.chapter__text {
+  font-size: 1.05rem;
+  color: rgba(243,236,226,0.75);
+  max-width: 46ch;
+}
+
+.chapter__text--quiet { color: var(--lavender-dim); }
+
+.chapter--quiet { opacity: 0.92; }
+.chapter--quiet .chapter__marker,
+.chapter--quiet .chapter__body { filter: saturate(0.5); }
+
+.note-placeholder {
+  border-left: 1px solid rgba(182,164,214,0.3);
+  padding-left: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.note-placeholder p {
+  font-size: 0.9rem;
+  color: var(--lavender-dim);
+  font-style: italic;
+  margin: 0;
+}
+
+/* =========================================================
+   REUNION
+   ========================================================= */
+.reunion {
+  max-width: none;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: visible;
+}
+
+.reunion__stage { position: relative; }
+
+.reunion__spark {
+  width: 4px;
+  height: 4px;
+  margin: 0 auto var(--space-3);
+  border-radius: 50%;
+  background: var(--rose-bright);
+  box-shadow: 0 0 8px 2px rgba(240,182,198,0.6);
+  transition: all 1.8s var(--ease);
+}
+
+.reunion.is-lit .reunion__spark {
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 60px 20px rgba(240,182,198,0.55), 0 0 140px 60px rgba(182,164,214,0.25);
+}
+
+.reunion__clock {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(2.6rem, 9vw, 5.5rem);
+  margin: 0 0 var(--space-1);
+  color: var(--lavender-dim);
+  letter-spacing: 0.03em;
+  transition: color 1.6s var(--ease), text-shadow 1.6s var(--ease);
+  display: inline-block;
+}
+
+.reunion.is-lit .reunion__clock {
+  color: var(--cream);
+  text-shadow: 0 0 40px rgba(217,143,166,0.35);
+}
+
+.reunion__meridiem {
+  font-family: var(--font-body);
+  font-size: 0.35em;
+  letter-spacing: 0.2em;
+  vertical-align: super;
+  margin-left: 0.3em;
+  color: var(--rose);
+}
+
+.reunion__date {
+  font-size: 0.8rem;
+  letter-spacing: 0.28em;
+  color: var(--lavender-dim);
+  margin: 0 0 var(--space-4);
+  transition: color 1.6s var(--ease);
+}
+
+.reunion.is-lit .reunion__date { color: var(--lavender); }
+
+.reunion__line {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  margin: 0 0 var(--space-2);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 1.6s var(--ease) 0.4s, transform 1.6s var(--ease) 0.4s;
+}
+
+.reunion.is-lit .reunion__line { opacity: 1; transform: translateY(0); }
+.reunion__line span { display: block; color: var(--cream); }
+.reunion__line span:last-child { color: var(--rose-bright); }
+
+.reunion__again {
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lavender-dim);
+  opacity: 0;
+  transition: opacity 1.6s var(--ease) 1s;
+}
+
+.reunion.is-lit .reunion__again { opacity: 1; color: var(--lavender); }
+
+.constellation {
+  position: absolute;
+  inset: -20vh -20vw;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.constellation svg { width: 100%; height: 100%; }
+
+/* =========================================================
+   TIMER
+   ========================================================= */
+.timer { text-align: center; }
+
+.timer__eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rose);
+  margin: 0 0 var(--space-3);
+}
+
+.timer__grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-2);
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.timer__unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: var(--space-2) 0.25rem;
+  border-top: 1px solid rgba(182,164,214,0.18);
+}
+
+.timer__value {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--cream);
+}
+
+.timer__label {
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lavender-dim);
+}
+
+.timer__caption {
+  margin-top: var(--space-3);
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--lavender-dim);
+}
+
+/* =========================================================
+   SONG
+   ========================================================= */
+.song { text-align: center; max-width: 480px; }
+
+.song__eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rose);
+  margin: 0 0 var(--space-2);
+}
+
+.song__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  margin: 0;
+  color: var(--cream);
+}
+
+.song__artist { color: var(--lavender-dim); margin: 0.3rem 0 var(--space-3); }
+
+.song__play {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.8rem;
+  border: 1px solid rgba(182,164,214,0.4);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+  transition: border-color 0.35s ease, background 0.35s ease, transform 0.25s ease;
+}
+
+.song__play:hover { border-color: var(--rose); background: rgba(217,143,166,0.06); transform: translateY(-1px); }
+.song__play-icon { color: var(--rose-bright); }
+.song__embed { margin-top: var(--space-3); }
+
+.song__note {
+  margin-top: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--lavender-dim);
+  font-style: italic;
+}
+
+/* =========================================================
+   THE SHAPE OF IT — generative graphic (replaces photo gallery)
+   ========================================================= */
+.shape {
+  text-align: center;
+  max-width: 900px;
+}
+
+.shape__eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rose);
+  margin: 0 0 var(--space-1);
+}
+
+.shape__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  margin: 0 0 var(--space-2);
+}
+
+.shape__caption {
+  font-size: 0.9rem;
+  color: var(--lavender-dim);
+  font-style: italic;
+  margin: 0 0 var(--space-3);
+}
+
+.shape__art { width: 100%; height: auto; overflow: visible; }
+
+.shape__path {
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  pathLength: 1000;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 2.2s var(--ease);
+}
+
+.shape.is-drawn .shape__path--a { stroke: var(--lavender); transition-delay: 0.1s; }
+.shape.is-drawn .shape__path--b { stroke: var(--rose); transition-delay: 0.3s; }
+.shape.is-drawn .shape__path--a,
+.shape.is-drawn .shape__path--b { stroke-dashoffset: 0; }
+
+.shape__point {
+  fill: var(--rose-bright);
+  opacity: 0;
+  transition: opacity 1s var(--ease) 1.8s;
+}
+
+.shape.is-drawn .shape__point { opacity: 1; }
+
+.shape__point--glow {
+  animation: shape-pulse 3.5s ease-in-out infinite 2.2s;
+}
+
+@keyframes shape-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.shape__label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  fill: var(--lavender-dim);
+  opacity: 0;
+  transition: opacity 1s var(--ease) 1.6s;
+}
+
+.shape.is-drawn .shape__label { opacity: 1; }
+
+/* =========================================================
+   FOR MARIAM
+   ========================================================= */
+.for-her { text-align: center; max-width: 620px; }
+
+.for-her__eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rose);
+  margin: 0 0 var(--space-1);
+}
+
+.for-her__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2.2rem, 6vw, 3.4rem);
+  margin: 0 0 var(--space-3);
+  color: var(--rose-bright);
+}
+
+.for-her__note {
+  border: 1px solid rgba(182,164,214,0.2);
+  border-radius: 4px;
+  padding: var(--space-4) var(--space-3);
+  background: linear-gradient(160deg, rgba(182,164,214,0.04), rgba(217,143,166,0.03));
+}
+
+.for-her__note p { margin: 0; font-style: italic; color: var(--lavender-dim); }
+
+/* =========================================================
+   FINAL
+   ========================================================= */
+.final {
+  text-align: center;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: none;
+}
+
+.final__names {
+  font-size: 0.85rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--lavender);
+  margin: 0 0 var(--space-1);
+}
+
+.final__names span { color: var(--rose); }
+
+.final__still {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  color: var(--cream);
+  margin: 0 0 var(--space-2);
+}
+
+.final__date {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--lavender-dim);
+  margin: 0 0 var(--space-3);
+}
+
+.final__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--rose-bright);
+  box-shadow: 0 0 20px 6px rgba(240,182,198,0.5);
+  animation: dot-breathe 4s ease-in-out infinite;
+}
+
+@keyframes dot-breathe {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.4); }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 900px) {
+  .thread { left: 28px; }
+  section { padding: var(--space-4) var(--space-2) var(--space-4) 3.5rem; }
+  .hero { padding: var(--space-3); }
+  .timer__grid { grid-template-columns: repeat(3, 1fr); row-gap: var(--space-3); }
+  .chapter__body { max-width: 100%; }
+}
+
+@media (max-width: 520px) {
+  .hero__names { letter-spacing: 0.3em; }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.2s !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal] { opacity: 1; transform: none; }
+  .shape__path { stroke-dashoffset: 0 !important; }
+  .shape__point, .shape__label { opacity: 1 !important; }
+  #particle-canvas, .cursor-glow, .grain { display: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particle-canvas" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor-glow" aria-hidden="true"></div>
+
+<button id="atmosphere-toggle" class="atmosphere-toggle" aria-label="Shift the ambient light">
+  <span class="atmosphere-toggle__dot"></span>
+</button>
+
+<svg class="thread" width="4" height="100%" preserveAspectRatio="none" aria-hidden="true">
+  <line id="thread-line" x1="2" y1="0" x2="2" y2="100%" />
+</svg>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="hero">
+    <div class="hero__content">
+      <p class="hero__names" data-reveal>BEBO <span class="hero__times">×</span> MARIAM</p>
+      <div class="hero__rule" data-reveal></div>
+      <h1 class="hero__line" data-reveal>
+        <span>Somehow,</span>
+        <span>it was still us.</span>
+      </h1>
+    </div>
+    <div class="scroll-cue" data-reveal aria-hidden="true">
+      <span></span>
+      <p>scroll</p>
+    </div>
+  </section>
+
+  <!-- ============ CHAPTER ONE ============ -->
+  <section class="chapter chapter--one" id="chapter-one" data-thread-node data-thread-state="lit">
+    <div class="chapter__marker">
+      <span class="chapter__dot"></span>
+      <span class="chapter__date">September 15, 2024</span>
+    </div>
+    <div class="chapter__body">
+      <p class="chapter__eyebrow">Where it begins</p>
+      <h2 class="chapter__title">The first page.</h2>
+      <p class="chapter__text">This is the day the story opened. Everything after was written from here.</p>
+      <div class="note-placeholder">
+        <p>[ Add a memory or message from this day ]</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE QUIET CHAPTER ============ -->
+  <section class="chapter chapter--quiet" id="chapter-quiet" data-thread-node data-thread-state="dim">
+    <div class="chapter__marker">
+      <span class="chapter__dot chapter__dot--dim"></span>
+      <span class="chapter__date">September 9, 2025</span>
+    </div>
+    <div class="chapter__body">
+      <p class="chapter__eyebrow">A pause, not an ending</p>
+      <h2 class="chapter__title chapter__title--quiet">Then, for a while,<br>our story went quiet.</h2>
+      <p class="chapter__text chapter__text--quiet">Some chapters pause. Ours found its way back to the same page.</p>
+    </div>
+  </section>
+
+  <!-- ============ THE REUNION ============ -->
+  <section class="reunion" id="reunion" data-thread-node data-thread-state="reunion">
+    <div class="reunion__stage">
+      <div class="reunion__spark" id="reunion-spark"></div>
+      <p class="reunion__clock" id="reunion-clock" tabindex="0" role="button" aria-label="A small secret is hidden here">04:42<span class="reunion__meridiem">AM</span></p>
+      <p class="reunion__date">AUGUST 11, 2026</p>
+      <h2 class="reunion__line">
+        <span>And then,</span>
+        <span>we found our way back.</span>
+      </h2>
+      <p class="reunion__again">Us, again.</p>
+      <div class="constellation" id="constellation" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ============ LIVE TIMER ============ -->
+  <section class="timer" id="timer">
+    <p class="timer__eyebrow">Together</p>
+    <div class="timer__grid" id="timer-grid">
+      <div class="timer__unit"><span class="timer__value" id="t-years">0</span><span class="timer__label">years</span></div>
+      <div class="timer__unit"><span class="timer__value" id="t-months">0</span><span class="timer__label">months</span></div>
+      <div class="timer__unit"><span class="timer__value" id="t-days">0</span><span class="timer__label">days</span></div>
+      <div class="timer__unit"><span class="timer__value" id="t-hours">0</span><span class="timer__label">hours</span></div>
+      <div class="timer__unit"><span class="timer__value" id="t-minutes">0</span><span class="timer__label">minutes</span></div>
+      <div class="timer__unit"><span class="timer__value" id="t-seconds">0</span><span class="timer__label">seconds</span></div>
+    </div>
+    <p class="timer__caption">Counting only the moments we actually had.</p>
+  </section>
+
+  <!-- ============ OUR SONG ============ -->
+  <section class="song" id="song">
+    <p class="song__eyebrow">Our song</p>
+    <h2 class="song__title">Something About You</h2>
+    <p class="song__artist">Eyedress &amp; Dent May</p>
+
+    <button class="song__play" id="song-play">
+      <span class="song__play-icon" aria-hidden="true">♫</span>
+      Play our song
+    </button>
+
+    <div class="song__embed" id="song-embed" hidden>
+      <iframe
+        id="spotify-frame"
+        style="border-radius:12px"
+        width="100%"
+        height="152"
+        frameborder="0"
+        allowfullscreen=""
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+        title="Something About You — Eyedress &amp; Dent May, Spotify player">
+      </iframe>
+    </div>
+    <p class="song__note">Spotify may ask you to press play once — browsers don't allow us to do it for you.</p>
+  </section>
+
+  <!-- ============ THE SHAPE OF IT (generative graphic) ============ -->
+  <section class="shape" id="shape" data-reveal-group>
+    <p class="shape__eyebrow">The shape of it</p>
+    <h2 class="shape__title">Two lines. One story.</h2>
+    <p class="shape__caption">They didn't always run together. They only ever led to the same place.</p>
+
+    <svg class="shape__art" id="shape-art" viewBox="0 0 800 260" role="img" aria-label="Two lines that part ways and find each other again">
+      <path class="shape__path shape__path--a" d="M 40 130 C 220 130, 260 40, 400 40 S 580 220, 760 130" pathLength="1000"/>
+      <path class="shape__path shape__path--b" d="M 40 130 C 220 130, 260 220, 400 220 S 580 40, 760 130" pathLength="1000"/>
+
+      <circle class="shape__point" cx="40" cy="130" r="4"/>
+      <text class="shape__label" x="40" y="112" text-anchor="middle">2024</text>
+
+      <circle class="shape__point" cx="400" cy="40" r="2.4"/>
+      <circle class="shape__point" cx="400" cy="220" r="2.4"/>
+      <text class="shape__label" x="400" y="245" text-anchor="middle">2025</text>
+
+      <circle class="shape__point shape__point--glow" cx="760" cy="130" r="5"/>
+      <text class="shape__label" x="742" y="112" text-anchor="middle">2026</text>
+    </svg>
+  </section>
+
+  <!-- ============ FOR MARIAM ============ -->
+  <section class="for-her" id="for-her">
+    <p class="for-her__eyebrow">A page just for you</p>
+    <h2 class="for-her__title">For Mariam.</h2>
+    <div class="for-her__note">
+      <p>[ Write my message to Mariam here ]</p>
+    </div>
+  </section>
+
+  <!-- ============ FINAL ============ -->
+  <section class="final" id="final">
+    <p class="final__names">Bebo <span>×</span> Mariam</p>
+    <p class="final__still">Still us.</p>
+    <p class="final__date">11.08.2026 — 04:42 AM</p>
+    <div class="final__dot" aria-hidden="true"></div>
+  </section>
+
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* =========================================================
+     RELATIONSHIP TIMER
+     Counts: (Sept 15 2024 -> Sept 9 2025) + (Aug 11 2026 4:42am -> now)
+     The breakup period itself is never counted.
+     ========================================================= */
+  const FIRST_START = new Date(2024, 8, 15, 0, 0, 0);  // Sep 15 2024, 00:00 local
+  const FIRST_END   = new Date(2025, 8, 9, 0, 0, 0);   // Sep 9 2025, 00:00 local
+  const REUNION     = new Date(2026, 7, 11, 4, 42, 0); // Aug 11 2026, 04:42 local
+
+  function activeRelationshipMilliseconds(now = new Date()) {
+    const firstDuration = FIRST_END - FIRST_START;
+    if (now < FIRST_START) return 0;
+    if (now < FIRST_END) return now - FIRST_START;   // mid-first-chapter
+    if (now < REUNION) return firstDuration;         // during the pause: frozen, breakup excluded
+    return firstDuration + (now - REUNION);          // after reunion: first chapter + time back together
+  }
+
+  // Calendar-accurate Y/M/D/H/M/S breakdown: project the true elapsed
+  // milliseconds forward from a real calendar anchor (FIRST_START), then
+  // diff the two real dates the way a birthday/age calculator would —
+  // so months and days respect actual month lengths.
+  function diffCalendar(start, end) {
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+    let hours = end.getHours() - start.getHours();
+    let minutes = end.getMinutes() - start.getMinutes();
+    let seconds = end.getSeconds() - start.getSeconds();
+
+    if (seconds < 0) { seconds += 60; minutes--; }
+    if (minutes < 0) { minutes += 60; hours--; }
+    if (hours < 0) { hours += 24; days--; }
+    if (days < 0) {
+      const prevMonthLastDay = new Date(end.getFullYear(), end.getMonth(), 0).getDate();
+      days += prevMonthLastDay;
+      months--;
+    }
+    if (months < 0) { months += 12; years--; }
+
+    return { years, months, days, hours, minutes, seconds };
+  }
+
+  function getDuration(now = new Date()) {
+    const totalMs = activeRelationshipMilliseconds(now);
+    const virtualEnd = new Date(FIRST_START.getTime() + totalMs);
+    return diffCalendar(FIRST_START, virtualEnd);
+  }
+
+  const timerEls = {
+    years: document.getElementById('t-years'),
+    months: document.getElementById('t-months'),
+    days: document.getElementById('t-days'),
+    hours: document.getElementById('t-hours'),
+    minutes: document.getElementById('t-minutes'),
+    seconds: document.getElementById('t-seconds'),
+  };
+
+  function renderTimer() {
+    const d = getDuration();
+    if (timerEls.years) timerEls.years.textContent = d.years;
+    if (timerEls.months) timerEls.months.textContent = d.months;
+    if (timerEls.days) timerEls.days.textContent = d.days;
+    if (timerEls.hours) timerEls.hours.textContent = d.hours;
+    if (timerEls.minutes) timerEls.minutes.textContent = d.minutes;
+    if (timerEls.seconds) timerEls.seconds.textContent = d.seconds;
+  }
+
+  if (timerEls.years) {
+    renderTimer();
+    setInterval(renderTimer, 1000);
+  }
+
+  /* =========================================================
+     SCROLL REVEALS
+     ========================================================= */
+  const revealTargets = document.querySelectorAll('[data-reveal]');
+  if ('IntersectionObserver' in window && revealTargets.length) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    revealTargets.forEach((el) => revealObserver.observe(el));
+  } else {
+    revealTargets.forEach((el) => el.classList.add('is-visible'));
+  }
+
+  // The "shape" graphic draws itself in once scrolled into view
+  const shapeSection = document.getElementById('shape');
+  if (shapeSection && 'IntersectionObserver' in window) {
+    const shapeObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          shapeSection.classList.add('is-drawn');
+          shapeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.35 });
+    shapeObserver.observe(shapeSection);
+  } else if (shapeSection) {
+    shapeSection.classList.add('is-drawn');
+  }
+
+  /* =========================================================
+     THE THREAD — dims through the quiet chapter, relights at reunion
+     ========================================================= */
+  const threadLine = document.getElementById('thread-line');
+  const threadNodes = document.querySelectorAll('[data-thread-node]');
+  const reunionSection = document.getElementById('reunion');
+
+  if (threadLine && threadNodes.length) {
+    const threadObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const state = entry.target.dataset.threadState;
+        if (state === 'dim') {
+          threadLine.style.stroke = 'var(--lavender-dim)';
+          threadLine.style.opacity = '0.12';
+        } else if (state === 'reunion') {
+          threadLine.style.stroke = 'var(--rose)';
+          threadLine.style.opacity = '0.55';
+          reunionSection.classList.add('is-lit');
+        } else {
+          threadLine.style.stroke = 'var(--lavender)';
+          threadLine.style.opacity = '0.4';
+        }
+      });
+    }, { threshold: 0.35 });
+    threadNodes.forEach((el) => threadObserver.observe(el));
+  }
+
+  /* =========================================================
+     PARTICLE CANVAS — skipped for reduced motion
+     ========================================================= */
+  const canvas = document.getElementById('particle-canvas');
+  if (canvas && !reduceMotion) {
+    const ctx = canvas.getContext('2d');
+    let width, height, particles;
+    const COUNT = window.innerWidth < 700 ? 26 : 48;
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = document.documentElement.scrollHeight;
+    }
+
+    function makeParticles() {
+      particles = Array.from({ length: COUNT }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 1.4 + 0.3,
+        vx: (Math.random() - 0.5) * 0.05,
+        vy: (Math.random() - 0.5) * 0.05 - 0.02,
+        alpha: Math.random() * 0.5 + 0.15,
+      }));
+    }
+
+    function tick() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.y < -10) p.y = height + 10;
+        if (p.y > height + 10) p.y = -10;
+        if (p.x < -10) p.x = width + 10;
+        if (p.x > width + 10) p.x = -10;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(230,214,235,${p.alpha})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(tick);
+    }
+
+    resize();
+    makeParticles();
+    tick();
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => { resize(); makeParticles(); }, 300);
+    });
+  }
+
+  /* =========================================================
+     CURSOR GLOW
+     ========================================================= */
+  const cursorGlow = document.querySelector('.cursor-glow');
+  if (cursorGlow && !reduceMotion && matchMedia('(hover: hover)').matches) {
+    window.addEventListener('pointermove', (e) => {
+      cursorGlow.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+    });
+  }
+
+  /* =========================================================
+     ATMOSPHERE TOGGLE (easter egg)
+     ========================================================= */
+  const atmosphereToggle = document.getElementById('atmosphere-toggle');
+  if (atmosphereToggle) {
+    atmosphereToggle.addEventListener('click', () => {
+      document.body.classList.toggle('atmosphere--warm');
+    });
+  }
+
+  /* =========================================================
+     4:42 CONSTELLATION (easter egg)
+     ========================================================= */
+  const clock = document.getElementById('reunion-clock');
+  const constellationHost = document.getElementById('constellation');
+
+  function drawConstellation() {
+    if (!constellationHost) return;
+    constellationHost.innerHTML = '';
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 400 300');
+
+    const points = [
+      [40, 220], [70, 150], [110, 170], [150, 90],
+      [190, 130], [230, 60], [260, 100], [300, 140],
+      [330, 80], [360, 200]
+    ];
+
+    points.forEach(([x, y], i) => {
+      const star = document.createElementNS(svgNS, 'circle');
+      star.setAttribute('cx', x);
+      star.setAttribute('cy', y);
+      star.setAttribute('r', 1.6);
+      star.setAttribute('fill', '#f0b6c6');
+      star.style.opacity = '0';
+      star.style.transition = `opacity 0.6s ease ${i * 0.08}s`;
+      svg.appendChild(star);
+
+      if (i > 0) {
+        const [px, py] = points[i - 1];
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('x1', px);
+        line.setAttribute('y1', py);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke', '#b6a4d6');
+        line.setAttribute('stroke-width', '0.6');
+        line.style.opacity = '0';
+        line.style.transition = `opacity 0.6s ease ${i * 0.08}s`;
+        svg.appendChild(line);
+      }
+    });
+
+    constellationHost.appendChild(svg);
+    requestAnimationFrame(() => {
+      svg.querySelectorAll('circle, line').forEach((el) => { el.style.opacity = '1'; });
+    });
+
+    setTimeout(() => {
+      svg.querySelectorAll('circle, line').forEach((el) => { el.style.opacity = '0'; });
+    }, 4200);
+  }
+
+  if (clock) {
+    clock.addEventListener('click', drawConstellation);
+    clock.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); drawConstellation(); }
+    });
+  }
+
+  /* =========================================================
+     SONG — lazy-load the Spotify embed only once requested
+     ========================================================= */
+  const songPlayBtn = document.getElementById('song-play');
+  const songEmbed = document.getElementById('song-embed');
+  const spotifyFrame = document.getElementById('spotify-frame');
+  const SPOTIFY_EMBED_SRC = 'https://open.spotify.com/embed/track/3oNQ6NkihVzQkV5qhk2Pbe?utm_source=generator&theme=0';
+
+  if (songPlayBtn) {
+    songPlayBtn.addEventListener('click', () => {
+      if (!spotifyFrame.src) spotifyFrame.src = SPOTIFY_EMBED_SRC;
+      songEmbed.hidden = false;
+      songPlayBtn.setAttribute('aria-expanded', 'true');
+      songEmbed.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
